@@ -1,54 +1,55 @@
 Gaming Profile Data Modeling with Amazon DynamoDB
 Overview
 
-This document outlines a use case using DynamoDB as a .
+This document outlines a use case using DynamoDB for storing player profiles for a gaming system. Users (in this case, players) need to create profiles before they can interact with many modern games, especially online ones. Gaming profiles typically include the following:
+* Basic information such as their user name
+* Game data such as items and equipment
+* Game records such as tasks and activities
+* Social information such as friend lists
 
 Key Entities
 
-    user
-    post
+    player
+    items
+    task
+    activity
+    equipments
+    friends
 
 Design Approach
 
 We employ a single table design with the following key structure:
 
-    Partition Key (PK): Identifies the key entity type (u# for user, p# for post) and optionally, a second # followed by a descriptor of what is stored in the partition.
-        u#<userID> - Given user
-        u#<userID>#follower - Given user's followers
-        u#<userID>#following - The users that the given user is following
-        u#<userID>#post - Given user's posts
-        p#<postID>#likelist - The users that have liked the given post
-        p#<postID>#likecount - The count of the given post's likes
-        u#<userID>#timeline - Given user's timeline
+    Partition Key (PK): Identifies the player entity type.
 
     Sort Key (SK): Contains the ID of an entity in the Partition Key collection or a descriptor of the attributes ("count", "info") for the primary key of <PK><SK>
 
         Examples:
         PK 	SK 	Sample Attributes
-        u#12345 	count 	follower#, following#, post#
-        u#12345 	info 	name, content, imageUrl
-        u#12345#follower 	u#34567 	
-        u#12345#following 	u#34567 	
-        u#12345#post 	p#12345 	content, imageUrl, timestamp
-        p#12345#likelist 	u#34567 	
-        p#12345#likecount 	count 	etc
-        u#12345#timeline 	p#34567#u#56789 	ttl
+        player001    #METADATA#player001    Type, CreatedAt, UpdatedAt, Nickname, Email, Gender, Avatar, Currency, PlayerLevel, PlayerHealth, PlayerExperience
+        player001    ACTIVITY#001            Type, ActivityEndTime, ActivityName, ActivityReward, ActivityStartTime, ActivityType
+        player001    EQUIPMENTS#001        Type, EquipmentName, EquipmentType, EquipmentAttributes
+        player001    EQUIPMENTS#001EQUIPMENTS#002    Type, EquipmentName, EquipmentType, EquipmentAttributes
+        player001    FRIENDS#player001    Type, FriendList
+        player001    ITEMS#001    Type, ItemName, ItemType, ItemCount, ItemAttributes
+        player001    TASK#001    Type, TaskName, TaskDescription, TaskStatus, TaskReward
 
 Access Patterns
 
-The document covers 7 access patterns. For each access pattern, we provide:
+The document covers 6 access patterns. For each access pattern, we provide:
 
     Specific PK and SK used
 
     Relevant DynamoDB operation (GetItem, Query)
-    Access pattern 	Operation 	Partition key value 	Sort key value
-    getUserInfoByUserID 	Query 	PK=<userID> 	
-    getFollowerListByUserID 	Query 	PK=<userID>#follower 	
-    getFollowingListByUserID 	Query 	PK=<userID>#following 	
-    getPostListByUserID 	Query 	PK=<userID>#post 	
-    getUserLikesByPostID 	Query 	PK=<postID>#likelist 	
-    getLikeCountByPostID 	GetItem 	PK=<postID>#likecount 	
-    getTimelineByUserID 	Query 	PK=<userID>#timeline 	
+
+    Other conditions/filters
+    Access pattern 	Operation 	Partition key value 	Sort key value    Other conditions/filters
+    getPlayerFriends 	GetItem 	PK=<playerID>    SK=FRIENDS#<playerID>   
+    getPlayerAllProfile 	Query 	PK=<playerID>    
+    getPlayerAllItems 	Query 	PK=<playerID>        SK=begins_with "ITEMS#"    
+    getPlayerSpecificItem 	Query 	PK=<playerID>    SK=begins_with "ITEMS#"    filterExpression: "ItemType =:itemType" expressionAtributteValues: {":itemType": "Weapon" }
+    updateCharacterAttributes 	UpdateItem 	PK=<playerID>    SK="#METADATA#<playerID>"
+    updateItemCount 	UpdateItem 	PK=<playerID>    SK="ITEMS#<ItemID>"
 
 Goals
 
@@ -57,7 +58,7 @@ Goals
 
 Schema Design
 
-A comprehensive schema design is included, demonstrating how different entities and access patterns map to the DynamoDB table structure. SocialNetworkSchema.json
+A comprehensive schema design is included, demonstrating how different entities and access patterns map to the DynamoDB table structure. GamePlayerProfilesSchema.json
 Additional Information
 
-Social network schema design in DynamoDB
+Gaming profile schema design in DynamoDB
