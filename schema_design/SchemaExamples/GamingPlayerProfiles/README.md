@@ -1,7 +1,7 @@
 # Gaming Profile Data Modeling with Amazon DynamoDB
 ## Overview
 
-This document outlines a use case using DynamoDB for storing player profiles of a gaming system. Users (in this case, players) need to create profiles before they can interact with many modern games, especially online ones. Gaming profiles typically include the following:
+This document outlines a use case using DynamoDB to store the player profiles of a gaming system. Users (in this case, players) need to create profiles before they can interact with many modern games, especially online ones. Gaming profiles typically include the following:
 * Basic information such as their user name
 * Game data such as items and equipment
 * Game records such as tasks and activities
@@ -23,7 +23,7 @@ We employ a single table design with the following key structure:
 - Partition Key (PK): Identifies the player.
     - player\<player ID\> - given player
 
-- Sort Key (SK): Indicates data contained in the item attributes.
+- Sort Key (SK): Identifies data contained in the attributes.
     - #METADATA\<player ID\> - metadata for the given player
     - \<ENTITY TYPE\>#\<ENTITY ID\> - entity attributes for the given entity type and ID. 
     
@@ -54,8 +54,8 @@ The document covers 6 access patterns. For each access pattern, we provide:
     | getPlayerFriends | GetItem | PK=\<playerID\> | SK=FRIENDS#\<playerID\> | |
     | getPlayerAllProfile |	Query |	PK=\<playerID\> | |    
     | getPlayerAllItems | Query | PK=\<playerID\> | SK=begins_with "ITEMS#" | |   
-    | getPlayerSpecificItem | Query | PK=\<playerID\> | SK=begins_with "ITEMS#" | filterExpression:<br>"ItemType = :itemType"<br><br>expressionAtributeValues:<br> {":itemType": "Weapon" } |
-    | updateCharacterAttributes | UpdateItem | PK=\<playerID\> | SK="#METADATA#\<playerID\>" | UpdateExpression:<br>"SET currency = currency - :amount" <br><br>ConditionExpression:<br> "currency >= :minAmount" |
+    | getPlayerSpecificItem | Query | PK=\<playerID\> | SK=begins_with "ITEMS#" | filter-expression:<br>"ItemType = :itemType"<br><br>expression-attribute-values:<br> '{":itemType": "Weapon" }' |
+    | updateCharacterAttributes | UpdateItem | PK=\<playerID\> | SK="#METADATA#\<playerID\>" | update-expression:<br>"SET currency = currency - :amount" <br><br>condition-expression:<br> "currency >= :minAmount" |
     | updateItemCount | UpdateItem | PK=\<playerID\> | SK="ITEMS#\<ItemID\>" | update-expression:<br>"SET ItemCount = ItemCount - :incr"<br><br>expression-attribute-values:<br>'{":incr":{"N":"1"}}' |
 
 ## Goals
